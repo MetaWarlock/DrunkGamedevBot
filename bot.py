@@ -26,17 +26,20 @@ async def send_welcome(event):
 
 @client.on(events.NewMessage(pattern='/remove_banned'))
 async def handle_remove_banned(event):
-    """Удаляет пользователей с ограничениями из группы."""
-    chat_id = event.chat_id
-    await remove_banned_users(client, chat_id)
-    await event.reply("Пользователи с ограничениями удалены.")
+    try:
+        count = await remove_banned_users(client, event.chat_id)
+        await event.reply(f"Удалено пользователей: {count}")
+    except Exception as e:
+        logging.error(f"Ошибка в /remove_banned: {e}", exc_info=True)
+        await event.reply("⚠️ Ошибка при удалении пользователей!")
 
 @client.on(events.NewMessage(pattern='/show_banned'))
 async def handle_show_banned(event):
-    """Показывает список пользователей с ограничениями в файле logs/banned_list.txt."""
-    chat_id = event.chat_id
-    await show_banned_users(client, chat_id)
-    await event.reply("Список пользователей с ограничениями обновлен в logs/banned_list.txt")
+    success, count = await show_banned_users(client, event.chat_id)
+    if success:
+        await event.reply(f"Список обновлен! Записей: {count}")
+    else:
+        await event.reply("⚠️ Ошибка при записи файла!")
 
 if __name__ == "__main__":
     logging.info("Бот запущен!")
